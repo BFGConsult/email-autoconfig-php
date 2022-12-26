@@ -3,7 +3,7 @@ declare(strict_types=1);
 error_reporting(E_ALL);
 ini_set('display_errors', 'On');
 ini_set('display_startup_errors', 'On');
-include('MailSetup.inc');
+include('MailSetup.inc.php');
 
 $ms=new MailSetup('config-v1.1.xml', 'Apple');
 header('Content-Type: application/xml');

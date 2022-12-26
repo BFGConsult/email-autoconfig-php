@@ -2,15 +2,17 @@
 declare(strict_types=1);
 error_reporting(-1);
 ini_set('display_errors', 'On');
-//declare(strict_types=1);
-//$emailProvider=$xml['emailProvider']['domain'];
-define('SOCK_SSL',1);
-define('CONTEXT_MS',2);
-define('CONTEXT_APPLE',3);
-define('AUTH_PASSWORD_CLEARTEXT',4);
-define('SOCK_STARTTLS',5);
-define('TYPE_IMAP',6);
-define('TYPE_SMTP',7);
+
+//These should all be ENUMS, but we have to waith for PHP-8
+define('SOCK_SSL', 1);
+define('CONTEXT_MS', 2);
+define('CONTEXT_APPLE', 3);
+define('AUTH_PASSWORD_CLEARTEXT', 4);
+define('SOCK_STARTTLS', 5);
+define('TYPE_IMAP', 6);
+define('TYPE_SMTP', 7);
+define('CONTEXT_MOZILLA', 8);
+
 class MailServer {
   private $xmlServerObject;
   private $hostname;
@@ -27,7 +29,7 @@ class MailServer {
       $this->port=(int)$xmlServerObject->xpath("port")[0];
       $this->setSocketType($xmlServerObject->xpath("socketType")[0]);
       $this->setAuthentication($xmlServerObject->xpath("authentication")[0]);
-      $this->username=$xmlServerObject->xpath("username")[0];
+      $this->username=(string)$xmlServerObject->xpath("username")[0];
   }
 
   function getHostname($context=NULL) {return $this->hostname;}
@@ -43,6 +45,7 @@ class MailServer {
   function useSSL($context=NULL) {
     $context=$this->getContext($context);
     if ($context==CONTEXT_APPLE) return ($this->socketType)?"<true/>":"<false/>";
+    if ($context==CONTEXT_MS) return ($this->socketType)?"on":"off";
     return $this->socketType!=0;
   }
   function getSocketType($context=NULL) {
@@ -85,17 +88,19 @@ class MailServer {
     switch ($this->type) {
       case TYPE_IMAP:
         if ($context == CONTEXT_APPLE) return "EmailTypeIMAP";
-        return "imap";
+        elseif ($context == CONTEXT_MS) return "IMAP";
+        else return "imap";
       case TYPE_SMTP:
-        return "smtp";
+        if ($context == CONTEXT_MS) return "SMTP";
+        else return "smtp";
       default:
         return "NULL";
     }
   }
   function getContext($context=NULL) {
       if ($context) {
-        if ($context == "MS") return CONTEXT_MS;
-        elseif ($context == "Apple") return CONTEXT_APPLE;
+        if (($context == "MS") || ($context == CONTEXT_MS )) return CONTEXT_MS;
+        elseif (($context == "Apple") || ($context == CONTEXT_APPLE ) ) return CONTEXT_APPLE;
         return 0;
       }
       else {
@@ -110,31 +115,28 @@ class MailServer {
   function getUsername($email=NULL, $context=NULL) {
     if ($email) {
       $context=$this->getContext($context);
-      if ($context) {
-        switch($context) {
-          case CONTEXT_MS:
-          case CONTEXT_APPLE:
+      if ($context)
             return $this->emailExpand($this->username, $email);
-          default:
+      else
             return $this->username;
-        }
-      }
     }
     return $this->username;
   }
   function toDict($email, $context) {
-      return ['hostname' => $this->getHostname(),
-              'port' => $this->getPort(),
-              'socketType' => $this->getSocketType(),
+      return ['hostname' => $this->getHostname($context),
+              'port' => $this->getPort($context),
+              'socketType' => $this->getSocketType($context),
               'username' => $this->getUsername($email,$context),
               'authentication' => $this->getAuthentication($context),
               'type' => $this->getType($context)
              ];
   }
-  function toString($email, $context) {
+  function toString($email=NULL, $context=NULL) {
       return print_r($this->toDict($email, $context), true);
   }
-
+  function __toString() {
+      return $this->toString();
+  }
 };
 
 class MailSetup {
@@ -158,15 +160,19 @@ class MailSetup {
   function getOutgoingServer() {
     return $this->outgoingServer;
   }
-  function toDict($email, $context) {
+  function toDict($email=NULL, $context=NULL) {
       return ['displayName' => $this->getDisplayName(),
               'incomingServer' => $this->incomingServer->toDict($email, $context),
               'outgoingServer' => $this->outgoingServer->toDict($email, $context)
              ];
   }
-  function toString($email, $context) {
+  function toString($email=NULL, $context=NULL) {
       return print_r($this->toDict($email, $context), true);
   }
+  function __toString() {
+      return $this->toString();
+  }
+
 
   function getDisplayName() {return $this->displayName;}
 };
