@@ -5,7 +5,7 @@ ini_set('display_errors', 'On');
 ini_set('display_startup_errors', 'On');
 include('MailSetup.inc.php');
 
-$ms=new MailSetup('config-v1.1.xml', 'Apple');
+$ms=new MailSetup('../.well-known/autoconfig/mail/config-v1.1.xml', 'Apple');
 header('Content-Type: application/xml');
 
 $email = filter_var($_GET["email"], FILTER_SANITIZE_EMAIL);

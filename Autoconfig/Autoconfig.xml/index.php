@@ -3,16 +3,24 @@ declare(strict_types=1);
 error_reporting(E_ALL);
 ini_set('display_errors', 'On');
 ini_set('display_startup_errors', 'On');
-include('MailSetup.inc.php');
+include('../../email.mobileconfig/MailSetup.inc.php');
 
-$ms=new MailSetup('config-v1.1.xml', 'MS');
+$ms=new MailSetup('../../.well-known/autoconfig/mail/config-v1.1.xml', 'MS');
 
 $raw = file_get_contents('php://input');
 $matches = array();
 preg_match('/<EMailAddress>(.*)<\/EMailAddress>/', $raw, $matches);
 header('Content-Type: application/xml');
 
-$email=$matches[1];
+if ($matches) {
+  $email=$matches[1];
+}
+elseif (array_key_exists('email', $_GET)) {
+  $email = filter_var($_GET["email"], FILTER_SANITIZE_EMAIL);
+}
+else {
+  $email='john.doe@example.com';
+}
 ?>
 <Autodiscover xmlns="http://schemas.microsoft.com/exchange/autodiscover/responseschema/2006">
   <Response xmlns="http://schemas.microsoft.com/exchange/autodiscover/outlook/responseschema/2006a">

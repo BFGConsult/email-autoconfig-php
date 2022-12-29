@@ -176,7 +176,4 @@ class MailSetup {
 
   function getDisplayName() {return $this->displayName;}
 };
-
-$ms=new MailSetup('config-v1.1.xml', 'Apple');
-
 ?>
