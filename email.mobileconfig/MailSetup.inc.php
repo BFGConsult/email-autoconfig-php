@@ -109,8 +109,11 @@ class MailServer {
   }
 
   function emailExpand($emailVar, $email) {
-    if ($emailVar=="%EMAILLOCALPART%") return strtok($email, '@');
-    return $emailVar;
+    $emaillocalpart=strtok($email, '@');
+    $emaildomain=strtok('@');
+    $keywords=array('%EMAILLOCALPART%', '%EMAILADDRESS%', '%EMAILDOMAIN%');
+    $values=array($emaillocalpart, $email, $emaildomain);
+    return str_replace($keywords, $values, $emailVar);
   }
   function getUsername($email=NULL, $context=NULL) {
     if ($email) {
