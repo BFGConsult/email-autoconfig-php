@@ -8,7 +8,13 @@ include('MailSetup.inc.php');
 $ms=new MailSetup('../.well-known/autoconfig/mail/config-v1.1.xml', 'Apple');
 header('Content-Type: application/xml');
 
-$email = filter_var($_GET["email"], FILTER_SANITIZE_EMAIL);
+if (array_key_exists('email', $_GET)) {
+  $email = filter_var($_GET["email"], FILTER_SANITIZE_EMAIL);
+}
+else {
+  http_response_code(422);
+  $email=NULL;
+}
 echo "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n";
 ?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">

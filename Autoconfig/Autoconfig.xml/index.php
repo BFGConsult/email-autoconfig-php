@@ -19,7 +19,8 @@ elseif (array_key_exists('email', $_GET)) {
   $email = filter_var($_GET["email"], FILTER_SANITIZE_EMAIL);
 }
 else {
-  $email='john.doe@example.com';
+  http_response_code(422);
+  $email=NULL;
 }
 ?>
 <Autodiscover xmlns="http://schemas.microsoft.com/exchange/autodiscover/responseschema/2006">
