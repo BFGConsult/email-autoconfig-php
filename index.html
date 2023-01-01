@@ -1,0 +1,123 @@
+<!doctype html>
+<html>
+    <head>
+    <title>Email Setup</title>
+    <meta name="description" content="email setup">
+    <meta name="keywords" content="email setup">
+    </head>
+    <body>
+       <h1>How to setup your email</h1>
+       <p>We provide automatic and manual setup</p>
+<p>Input your email address to get your setup: <input type="email" id="email" onchange="runUpdate()"><span style="color:red;font-weight: bold;" id="email-valid" hidden=true>Email not valid!</span></p>
+<h2>Automatic setup</h2>
+<p>Provided for:</p>
+<ul>
+<li id="Mozilla">Mozilla Thunderbird</li>
+<li id="Apple">Apple mail</li>
+<li id="Outlook">Outlook</li>
+</ul>
+<h2>Manual setup for <span id="displayName"></span></h2>
+<h3>Incoming server</h3>
+<table>
+<tr><td>Type:</td><td><span id="incomingServer-type"></span></td></tr>
+<tr><td>Hostname:</td><td><span id="incomingServer-hostname"></span></td></tr>
+<tr><td>Port:</td><td><span id="incomingServer-port"></span></td></tr>
+<tr><td>Socket Type:</td><td><span id="incomingServer-socketType"></span></td></tr>
+<tr><td>Username:</td><td><span id="incomingServer-username"></span></td></tr>
+<tr><td>Authentication:</td><td><span id="incomingServer-authentication"></span></td></tr>
+</table>
+<h3>Outgoing server</h3>
+<table>
+<tr><td>Type:</td><td><span id="outgoingServer-type"></span></td></tr>
+<tr><td>Hostname:</td><td><span id="outgoingServer-hostname"></span></td></tr>
+<tr><td>Port:</td><td><span id="outgoingServer-port"></span></td></tr>
+<tr><td>Socket Type:</td><td><span id="outgoingServer-socketType"></span></td></tr>
+<tr><td>Username:</td><td><span id="outgoingServer-username"></span></td></tr>
+<tr><td>Authentication:</td><td><span id="outgoingServer-authentication"></span></td></tr>
+</table>
+
+<script>
+function isObject(obj)
+{
+    return obj !== undefined && obj !== null && obj.constructor == Object;
+}
+
+function processResponse(config, prefix=null) {
+  for (var key in config) {
+    if (config.hasOwnProperty(key)) {
+        id=(prefix)?prefix+'-'+key:key;
+        value=config[key];
+        if (isObject(value))
+          processResponse(value, id);
+        else {
+          var el = document.getElementById(id);
+          if (el) {
+            el.textContent=value;
+            //console.log(el);
+          }
+          else {
+            console.log('No element found for ' +id + " -> " + value);
+          }
+        }
+    }
+  }
+}
+
+function reqListener() {
+  config=JSON.parse(this.responseText);
+  console.log(this.status);
+  processResponse(config);
+  var ev = document.getElementById('email-valid');
+  var el = document.getElementById('email');
+  if(this.status==200) {
+    updateLinks(el.value);
+    ev.hidden=true;
+  }
+  else {
+    if (el.value)
+      ev.hidden=false;
+    updateLinks();
+  }
+}
+
+function runUpdate() {
+  var el = document.getElementById('email');
+  if (el) {
+    if(el.validity.valid) {
+      updateConfig(el.value);
+      updateLinks(el.value);
+    }
+  }
+  else {
+    updateLinks();
+  }
+}
+
+function updateLink(id,email, target) {
+  var el = document.getElementById(id);
+  text=(el.firstElementChild==null)?el.textContent:el.firstElementChild.textContent;
+  if (email)
+    el.innerHTML='<a href="'+target+'">'+text+'</a>';
+  else
+    el.textContent=text;
+}
+function updateLinks(email) {
+  updateLink('Mozilla', email, '.well-known/autoconfig/mail/config-v1.1.xml?email='+email);
+  updateLink('Apple', email, 'email.mobileconfig/?email='+email);
+  updateLink('Outlook', email, 'Autoconfig/Autoconfig.xml?email='+email);
+}
+
+function updateConfig(email) {
+  const req = new XMLHttpRequest();
+  req.addEventListener("load", reqListener);
+  target="email.mobileconfig/json.php";
+  if (email) {
+    target+='?email='+email;
+  }
+  req.open("GET", target);
+  req.send();
+}
+runUpdate();
+</script>
+</body>
+</html>
