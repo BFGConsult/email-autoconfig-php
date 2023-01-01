@@ -117,11 +117,7 @@ class MailServer {
   }
   function getUsername($email=NULL, $context=NULL) {
     if ($email) {
-      $context=$this->getContext($context);
-      if ($context)
-            return $this->emailExpand($this->username, $email);
-      else
-            return $this->username;
+      return $this->emailExpand($this->username, $email);
     }
     return $this->username;
   }
@@ -148,7 +144,7 @@ class MailSetup {
   private $incomingServer;
   private $outgoingServer;
   private $context;
-  function __construct($filename, $context) {
+  function __construct($filename, $context=NULL) {
       $xml=simplexml_load_file($filename);
       //print_r($xml);
       $this->emailProvider=$xml->xpath("/clientConfig/emailProvider")[0];
