@@ -104,7 +104,7 @@ function updateLink(id,email, target) {
 function updateLinks(email) {
   updateLink('Mozilla', email, '.well-known/autoconfig/mail/config-v1.1.xml?email='+email);
   updateLink('Apple', email, 'email.mobileconfig/?email='+email);
-  updateLink('Outlook', email, 'Autoconfig/Autoconfig.xml?email='+email);
+  updateLink('Outlook', email, 'Autodiscover/Autodiscover.xml?email='+email);
 }
 
 function updateConfig(email) {
